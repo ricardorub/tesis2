@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Configura tu API Key de OpenRouter
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "123452"
  
 MODEL = "qwen/qwen3-30b-a3b:free"
 
@@ -50,4 +50,5 @@ def chat():
         return jsonify({"error": f"Error: {str(e)}"}), 500
 
 if __name__ == '__main__':
+
     app.run(debug=True)
