@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asesoría de Tesis - Chatbot</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #0062cc, #0097ff);
+            color: white;
+            padding: 100px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.05"><circle cx="50" cy="50" r="40" fill="white"/></svg>');
+            background-size: 200px;
+        }
+        .features-section {
+            padding: 80px 0;
+        }
+        .feature-box {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            transition: transform 0.3s;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .feature-box:hover {
+            transform: translateY(-10px);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        .login-floating {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+            width: 320px;
+        }
+        .login-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .bot-message {
+            background-color: #e3f2fd;
+            border-bottom-left-radius: 5px;
+            align-self: flex-start;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            border-bottom-right-radius: 5px;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #0062cc, #0097ff);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .testimonial-card {
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        .testimonial-author {
+            font-weight: bold;
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 40px 0;
+            margin-top: 80px;
+        }
+        .floating-login-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.5);
+            transition: all 0.3s;
+        }
+        .floating-login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.6);
+        }
+        @media (max-width: 768px) {
+            .login-floating {
+                width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón flotante para mostrar/ocultar login -->
+    <button class="floating-login-btn" id="toggleLoginBtn">
+        <i class="fas fa-user me-2"></i>Iniciar Sesión
+    </button>
+
+    <!-- Ventana de login flotante (inicialmente oculta) -->
+    <div class="login-floating" id="loginFloating" style="display: none;">
+        <div class="text-center mb-3">
+            <i class="fas fa-graduation-cap fa-2x text-primary"></i>
+            <h5 class="mt-2">Acceso Asesoría</h5>
+        </div>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="username" class="form-label">Usuario</label>
+                <input type="text" class="form-control" id="username" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="password" required>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">Recordar mis datos</label>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+        </form>
+        <div class="text-center mt-3">
+            <p class="text-muted mb-1">¿No tienes cuenta?</p>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Regístrate aquí</a>
+            <span class="mx-2">|</span>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">¿Olvidaste tu contraseña?</a>
+        </div>
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" id="closeLoginBtn"></button>
+    </div>
+
+    <!-- Sección Hero -->
+    <section class="hero-section" id="home">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">Asistencia experta para tu proyecto de tesis</h1>
+                    <p class="lead">Nuestro chatbot especializado te guiará en cada etapa de tu investigación, desde la elección del tema hasta la defensa final.</p>
+                    <div class="mt-4">
+                        <button class="btn btn-light btn-lg me-3" id="heroLoginBtn">Comenzar ahora</button>
+                        <a href="#features" class="btn btn-outline-light btn-lg">Saber más</a>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="fas fa-robot" style="font-size: 15rem; opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de características -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">¿Cómo podemos ayudarte?</h2>
+                <p class="lead text-muted">Nuestro asistente virtual ofrece orientación especializada en todas las etapas de tu investigación</p>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h4>Elección del tema</h4>
+                        <p>Encuentra el tema perfecto para tu investigación con sugerencias basadas en tu área de estudio e intereses.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h4>Marco teórico</h4>
+                        <p>Identifica las teorías y conceptos clave para fundamentar sólidamente tu investigación.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <h4>Metodología</h4>
+                        <p>Selecciona los métodos de investigación más apropiados para tu estudio con recomendaciones personalizadas.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h4>Análisis de datos</h4>
+                        <p>Orientación en el procesamiento e interpretación de tus resultados de investigación.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-pencil-alt"></i>
+                        </div>
+                        <h4>Redacción académica</h4>
+                        <p>Mejora la calidad de tu escritura con consejos sobre estilo, formato y claridad.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <h4>Preparación de defensa</h4>
+                        <p>Prepárate para tu presentación final con simulacros y consejos para una defensa exitosa.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de testimonios -->
+    <section id="testimonials" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Lo que dicen nuestros usuarios</h2>
+                <p class="lead text-muted">Estudiantes que han utilizado nuestro servicio de asesoría virtual</p>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            "El asistente me ayudó a estructurar mi tesis de manera coherente. ¡Sin duda fue fundamental para aprobar con honores!"
+                        </div>
+                        <div class="testimonial-author">María González</div>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            "La ayuda con el marco metodológico fue invaluable. Ahorré semanas de trabajo gracias a las sugerencias precisas del chatbot."
+                        </div>
+                        <div class="testimonial-author">Carlos Mendoza</div>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            "Como estudiante de posgrado con poco tiempo, la disponibilidad 24/7 del asistente fue lo más útil. ¡Totalmente recomendado!"
+                        </div>
+                        <div class="testimonial-author">Ana Rodríguez</div>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenido Principal (después del login) - Inicialmente oculto -->
+    <div id="mainContent" class="main-content" style="display: none;">
+        <div class="header">
+            <div class="container">
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h1>Asistente Virtual de Tesis</h1>
+                <p class="lead">Tu compañero para el desarrollo de tu trabajo de investigación</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="chat-container">
+                <div class="chat-messages d-flex flex-column" id="chatMessages">
+                    <div class="message bot-message">
+                        <strong>AsesorVirtual:</strong> ¡Hola! Bienvenido al sistema de asesoría de tesis. ¿En qué puedo ayudarte hoy?
+                    </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control chat-input" id="userInput" placeholder="Escribe tu mensaje aquí..." disabled>
+                    <button class="btn btn-primary send-button" type="button" id="sendButton" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button id="logoutButton" class="btn btn-outline-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Registro -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Cuenta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="registerName" class="form-label">Nombres</label>
+                                <input type="text" class="form-control" id="registerName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="registerLastName" class="form-label">Apellidos</label>
+                                <input type="text" class="form-control" id="registerLastName" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerEmail" class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="registerEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerUsername" class="form-label">Usuario</label>
+                            <input type="text" class="form-control" id="registerUsername" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="registerPassword" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="registerPassword" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="registerConfirmPassword" class="form-label">Confirmar contraseña</label>
+                                <input type="password" class="form-control" id="registerConfirmPassword" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerUniversity" class="form-label">Universidad</label>
+                            <input type="text" class="form-control" id="registerUniversity">
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerCareer" class="form-label">Carrera o programa</label>
+                            <input type="text" class="form-control" id="registerCareer">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="registerTerms" required>
+                            <label class="form-check-label" for="registerTerms">Acepto los términos y condiciones</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="submitRegister">Registrarse</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Olvidé mi contraseña -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Recuperar contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña.</p>
+                    <form>
+                        <div class="mb-3">
+                            <label for="recoveryEmail" class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="recoveryEmail" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary">Enviar instrucciones</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>Asesoría de Tesis</h5>
+                    <p>Tu asistente virtual para el desarrollo exitoso de tu trabajo de investigación.</p>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5>Enlaces</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#home" class="text-white">Inicio</a></li>
+                        <li><a href="#features" class="text-white">Características</a></li>
+                        <li><a href="#testimonials" class="text-white">Testimonios</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Legal</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Términos y condiciones</a></li>
+                        <li><a href="#" class="text-white">Política de privacidad</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Contacto</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@asesoriatesis.com</li>
+                        <li><i class="fas fa-phone me-2"></i> +1 234 567 8900</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <p class="mb-0">&copy; 2023 Asesoría de Tesis. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-linkedin-in fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap & Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- Script personalizado -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos del DOM
+            const loginForm = document.getElementById('loginForm');
+            const mainContent = document.getElementById('mainContent');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const chatMessages = document.getElementById('chatMessages');
+            const logoutButton = document.getElementById('logoutButton');
+            const submitRegister = document.getElementById('submitRegister');
+            const toggleLoginBtn = document.getElementById('toggleLoginBtn');
+            const closeLoginBtn = document.getElementById('closeLoginBtn');
+            const loginFloating = document.getElementById('loginFloating');
+            const heroLoginBtn = document.getElementById('heroLoginBtn');
+            
+            // Mostrar/ocultar ventana de login flotante
+            toggleLoginBtn.addEventListener('click', function() {
+                if (loginFloating.style.display === 'none') {
+                    loginFloating.style.display = 'block';
+                    toggleLoginBtn.style.display = 'none';
+                } else {
+                    loginFloating.style.display = 'none';
+                }
+            });
+            
+            closeLoginBtn.addEventListener('click', function() {
+                loginFloating.style.display = 'none';
+                toggleLoginBtn.style.display = 'block';
+            });
+            
+            heroLoginBtn.addEventListener('click', function() {
+                loginFloating.style.display = 'block';
+                toggleLoginBtn.style.display = 'none';
+            });
+            
+            // Cerrar ventana de login al hacer clic fuera de ella
+            document.addEventListener('click', function(event) {
+                if (!loginFloating.contains(event.target) && 
+                    event.target !== toggleLoginBtn && 
+                    !toggleLoginBtn.contains(event.target) &&
+                    loginFloating.style.display === 'block') {
+                    loginFloating.style.display = 'none';
+                    toggleLoginBtn.style.display = 'block';
+                }
+            });
+            
+            // Manejar el envío del formulario de login
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                // Validación simple para la demostración
+                if (username && password) {
+                    // Ocultar la página de presentación y mostrar contenido principal
+                    document.querySelector('.hero-section').style.display = 'none';
+                    document.querySelector('.features-section').style.display = 'none';
+                    document.querySelector('#testimonials').style.display = 'none';
+                    document.querySelector('footer').style.display = 'none';
+                    loginFloating.style.display = 'none';
+                    toggleLoginBtn.style.display = 'none';
+                    mainContent.style.display = 'block';
+                    
+                    // Habilitar el chat
+                    userInput.disabled = false;
+                    sendButton.disabled = false;
+                    
+                    // Mensaje de bienvenida del chatbot
+                    addMessage("AsesorVirtual", `¡Hola ${username}! Soy tu asistente virtual para la asesoría de tesis. ¿En qué puedo ayudarte con tu proyecto de investigación?`);
+                } else {
+                    alert('Por favor, ingresa usuario y contraseña.');
+                }
+            });
+            
+            // Manejar el registro de nuevo usuario
+            submitRegister.addEventListener('click', function() {
+                const name = document.getElementById('registerName').value;
+                const lastname = document.getElementById('registerLastName').value;
+                const email = document.getElementById('registerEmail').value;
+                const username = document.getElementById('registerUsername').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('registerConfirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    alert('Las contraseñas no coinciden.');
+                    return;
+                }
+                
+                // Simular registro exitoso
+                alert(`¡Cuenta creada exitosamente para ${name} ${lastname}! Ahora puedes iniciar sesión.`);
+                
+                // Cerrar el modal
+                const registerModal = document.getElementById('registerModal');
+                const modal = bootstrap.Modal.getInstance(registerModal);
+                modal.hide();
+                
+                // Mostrar ventana de login
+                loginFloating.style.display = 'block';
+                toggleLoginBtn.style.display = 'none';
+            });
+            
+            // Manejar el cierre de sesión
+            logoutButton.addEventListener('click', function() {
+                // Mostrar la página de presentación
+                document.querySelector('.hero-section').style.display = 'block';
+                document.querySelector('.features-section').style.display = 'block';
+                document.querySelector('#testimonials').style.display = 'block';
+                document.querySelector('footer').style.display = 'block';
+                mainContent.style.display = 'none';
+                toggleLoginBtn.style.display = 'block';
+                
+                // Limpiar campos de login
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                
+                // Deshabilitar el chat
+                userInput.disabled = true;
+                sendButton.disabled = true;
+                
+                // Limpiar mensajes del chat
+                chatMessages.innerHTML = `
+                    <div class="message bot-message">
+                        <strong>AsesorVirtual:</strong> ¡Hola! Bienvenido al sistema de asesoría de tesis. ¿En qué puedo ayudarte hoy?
+                    </div>
+                `;
+                
+                // Scroll a la sección de inicio
+                window.scrollTo(0, 0);
+            });
+            
+            // Manejar el envío de mensajes
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message) {
+                    // Agregar mensaje del usuario
+                    addMessage("Tú", message, "user");
+                    
+                    // Limpiar input
+                    userInput.value = '';
+                    
+                    // Simular respuesta del bot después de un breve retraso
+                    setTimeout(() => {
+                        botResponse(message);
+                    }, 1000);
+                }
+            }
+            
+            function addMessage(sender, text, type = "bot") {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.classList.add(type === 'bot' ? 'bot-message' : 'user-message');
+                messageElement.innerHTML = `<strong>${sender}:</strong> ${text}`;
+                chatMessages.appendChild(messageElement);
+                
+                // Scroll al final de los mensajes
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function botResponse(userMessage) {
+                const lowerMessage = userMessage.toLowerCase();
+                let response = "";
+                
+                if (lowerMessage.includes("hola") || lowerMessage.includes("buenos días") || lowerMessage.includes("buenas tardes")) {
+                    response = "¡Hola! Me da mucho gusto saludarte. ¿En qué aspecto de tu tesis necesitas ayuda hoy?";
+                } else if (lowerMessage.includes("estructura") || lowerMessage.includes("capítulos")) {
+                    response = "La estructura típica de una tesis incluye: Introducción, Marco Teórico, Metodología, Resultados, Discusión y Conclusiones. ¿Te gustaría que profundice en alguno de estos aspectos?";
+                } else if (lowerMessage.includes("metodología") || lowerMessage.includes("método")) {
+                    response = "La metodología es crucial. ¿Tu investigación es cualitativa, cuantitativa o mixta? Esto determinará los métodos adecuados para tu estudio.";
+                } else if (lowerMessage.includes("citas") || lowerMessage.includes("referencias") || lowerMessage.includes("bibliografía")) {
+                    response = "Es importante usar un estilo de citación consistente (APA, MLA, Chicago, etc.). ¿Necesitas ayuda con algún estilo en particular?";
+                } else if (lowerMessage.includes("gracias") || lowerMessage.includes("agradezco")) {
+                    response = "¡De nada! Estoy aquí para ayudarte. ¿Hay algo más en lo que pueda asistirte con tu tesis?";
+                } else {
+                    response = "Interesante. Para darte la mejor asesoría sobre '" + userMessage + "', ¿podrías proporcionarme más detalles o especificar qué aspecto te preocupa?";
+                }
+                
+                addMessage("AsesorVirtual", response);
+            }
+        });
+    </script>
+</body>
+</html>
