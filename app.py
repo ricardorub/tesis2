@@ -32,9 +32,9 @@ MODEL = "qwen/qwen3-30b-a3b:free"
 PDF_PROCESSOR = PDFProcessor("tesis.pdf")
 
 
-# ============================
+# 
 # FUNCIONES DE APOYO
-# ============================
+# 
 def search_web(query, max_results=3):
     """Busca en DuckDuckGo y devuelve snippets relevantes."""
     try:
@@ -44,7 +44,7 @@ def search_web(query, max_results=3):
             snippets = [r['body'] for r in results if r.get('body')]
             return "\n\n".join(snippets) if snippets else ""
     except Exception as e:
-        print(f"⚠️ Error buscando en web: {e}")
+        print(f" Error buscando en web: {e}")
         return ""
 
 
@@ -70,14 +70,14 @@ def is_pdf_sufficient(pdf_chunks, user_query):
     return False
 
 
-# ============================
+# 
 # RUTAS DE AUTENTICACIÓN
-# ============================
+# 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # Obtenemos datos del formulario (no JSON)
+        # Obtenemos datos del formulario 
         username = request.form.get('firstName') + " " + request.form.get('lastName')
         email = request.form.get('email')
         password = request.form.get('password')
@@ -100,8 +100,8 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Obtenemos del formulario (no JSON)
-        usuario = request.form.get('usuario')  # puede ser email o username, según tu lógica
+        # Obtenemos del formulario 
+        usuario = request.form.get('usuario') 
         password = request.form.get('password')
 
         result = login_user(usuario, password)
@@ -122,9 +122,9 @@ def logout():
     return redirect(url_for('index'))
 
 
-# ============================
+#
 # RUTAS DE LA APP
-# ============================
+# 
 
 @app.route('/')
 def index():
@@ -152,11 +152,11 @@ def chat():
     # Guardar el mensaje del usuario en MySQL
     enviar_mensaje(session['user_id'], user_message)
 
-    # 🔍 Paso 1: Recuperar fragmentos del PDF
+    # Paso 1: Recuperar fragmentos del PDF
     relevant_chunks = PDF_PROCESSOR.retrieve_relevant_chunks(user_message, k=3)
     context_pdf = "\n\n".join(relevant_chunks)
 
-    # 🚦 Paso 2: Decidir si usar solo PDF o también Web
+    # Paso 2: Decidir si usar solo PDF o también Web
     if is_pdf_sufficient(relevant_chunks, user_message):
         system_prompt = (
             "Eres un asistente de tesis virtual llamado 'Sofia'. "
@@ -177,7 +177,7 @@ def chat():
         )
         source_label = "PDF + Web"
 
-    # 🚀 Llamada a OpenRouter — ¡CORREGIDO: quitamos espacio al final de la URL!
+    # Llamada a OpenRouter 
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
@@ -204,7 +204,7 @@ def chat():
         data = response.json()
         bot_reply = data['choices'][0]['message']['content']
 
-        print(f"🧠 Respuesta generada usando: {source_label}")
+        print(f" Respuesta generada usando: {source_label}")
 
         # Guardar respuesta del bot
         enviar_mensaje(session['user_id'], f"[SOFIA]: {bot_reply}")
@@ -215,13 +215,12 @@ def chat():
         })
 
     except Exception as e:
-        print(f"❌ Error en la llamada a OpenRouter: {str(e)}")
+        print(f" Error en la llamada a OpenRouter: {str(e)}")
         return jsonify({"error": f"Error: {str(e)}"}), 500
 
 
-# ============================
 # MAIN
-# ============================
+
 if __name__ == '__main__':
-    print("🚀 Iniciando app... cargando PDF...")
+    print(" Iniciando app... cargando PDF...")
     app.run(debug=True)
